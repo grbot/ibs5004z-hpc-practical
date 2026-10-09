@@ -1,0 +1,10 @@
+# Student data is supplied separately.
+data/*.fastq
+data/*.fq
+data/*.fastq.gz
+data/*.fq.gz
+
+# Outputs created during the practical.
+results/
+slurm-*.out
+
