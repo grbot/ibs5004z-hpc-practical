@@ -1,6 +1,6 @@
 # IBS5004Z: From a laptop to HPC
 
-This practical follows one small bioinformatics task from beginning to end. You will first perform the task manually, then run it as a reusable shell script, and finally submit the same script as a scheduled Slurm batch job:
+This practical begins by connecting your laptop securely to Ilifu. You will then follow one small bioinformatics task from beginning to end: first performing it manually, then running it as a reusable shell script, and finally submitting the same script as a scheduled Slurm batch job.
 
 **manual command → reusable shell script → scheduled Slurm batch job**
 
@@ -10,19 +10,87 @@ The repository is the authoritative guide for the practical. Every command block
 
 You need:
 
-- an Ilifu username and the correct Ilifu login hostname supplied by the lecturer;
-- an SSH client (`ssh` and `scp` are included in macOS and Linux; Windows users can use PowerShell or Windows Terminal); and
-- Git and a download tool such as `curl`.
+- your Ilifu username;
+- the private SSH key associated with your Ilifu account;
+- access to your two-factor authentication method; and
+- the software described in Part 0 below.
 
 In the examples below:
 
 - replace `<username>` with your Ilifu username;
-- replace `<ilifu-login-host>` with the hostname supplied by the lecturer;
-- replace `<repository-url>` with the GitHub URL for this repository;
 - replace `<FASTQ-RELEASE-URL>` with the direct URL for the `example.fastq.gz` GitHub Release asset; and
 - replace `<job-id>` with the job number printed by `sbatch`.
 
 Do not type the angle brackets (`<` and `>`) around replacement values.
+
+## Part 0 — Prepare your laptop and connect to Ilifu
+
+In this part, you will prepare a terminal, protect your private key, complete two-factor authentication, and confirm that you can reach Ilifu. The lecturer will guide the class through the institution-specific key and two-factor setup.
+
+### Windows: install and open Git Bash
+
+Download and install [Git for Windows](https://git-scm.com/install/windows), accepting the standard installation options. Open **Git Bash** from the Start menu after installation.
+
+Git Bash gives Windows users the Git, SSH, SCP, and Unix-style command-line tools used in this practical. Run all **LAPTOP** commands in Git Bash.
+
+### macOS and Linux: open a terminal
+
+- On macOS, open **Terminal** from Applications → Utilities.
+- On Linux, open your usual terminal application.
+
+### Check the required commands
+
+**Run on: LAPTOP**
+
+```bash
+command -v git ssh scp
+git --version
+ssh -V
+```
+
+The first command should print a location for each program, and the next two should display version information. Ask for help before continuing if `git`, `ssh`, or `scp` cannot be found.
+
+### Store and protect your private key
+
+Your lecturer will explain how the key for your Ilifu account is provided or registered. The example below assumes the private-key file is currently in your laptop's `Downloads` directory and is called `ilifu_key`. Adjust the source filename if yours is different.
+
+**Run on: LAPTOP**
+
+```bash
+mkdir -p ~/.ssh
+mv ~/Downloads/ilifu_key ~/.ssh/ilifu_key
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/ilifu_key
+```
+
+The private key is a credential. **Never email it, share it with another student, add it to this repository, or upload it to GitHub.**
+
+### Make your first connection
+
+**Run on: LAPTOP**
+
+```bash
+ssh -i ~/.ssh/ilifu_key <username>@slurm.ilifu.ac.za
+```
+
+During the first connection:
+
+1. SSH may ask whether you trust the host. Check that the hostname is `slurm.ilifu.ac.za` and confirm the host fingerprint with the lecturer before answering `yes`.
+2. If your private key has a passphrase, enter it when prompted. No characters will appear while you type.
+3. Complete the Ilifu two-factor authentication prompt using the method demonstrated by the lecturer.
+
+Your private-key passphrase and your two-factor authentication response are separate credentials. Depending on the authentication configuration, you may not see every prompt described above.
+
+After a successful connection, your prompt will change because your shell is now running on the Ilifu login node. Confirm this, then return to your laptop:
+
+**Run on: ILIFU LOGIN NODE**
+
+```bash
+hostname
+exit
+```
+
+Do not continue until you can connect successfully. If you encounter an account, key, or two-factor authentication problem, ask the lecturer or Ilifu support for help; another student's private key must not be used.
 
 ## Part 1 — Set up on your laptop
 
@@ -33,7 +101,7 @@ The Git repository contains the instructions and scripts. The FASTQ data is down
 **Run on: LAPTOP**
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/grbot/ibs5004z-hpc-practical.git
 cd ibs5004z-hpc-practical
 ```
 
@@ -115,19 +183,19 @@ ls ibs5004z-hpc-practical
 Copy the complete directory, including the downloaded FASTQ, to your Ilifu home directory using either `scp`:
 
 ```bash
-scp -r ibs5004z-hpc-practical <username>@<ilifu-login-host>:~/
+scp -i ~/.ssh/ilifu_key -r ibs5004z-hpc-practical <username>@slurm.ilifu.ac.za:~/
 ```
 
-or `rsync`:
+or, if `rsync` is installed, use:
 
 ```bash
-rsync -av ibs5004z-hpc-practical/ <username>@<ilifu-login-host>:~/ibs5004z-hpc-practical/
+rsync -av -e "ssh -i ~/.ssh/ilifu_key" ibs5004z-hpc-practical/ <username>@slurm.ilifu.ac.za:~/ibs5004z-hpc-practical/
 ```
 
 Connect to Ilifu:
 
 ```bash
-ssh <username>@<ilifu-login-host>
+ssh -i ~/.ssh/ilifu_key <username>@slurm.ilifu.ac.za
 ```
 
 Your prompt will change after login. Verify that both the repository and FASTQ arrived:
@@ -281,7 +349,7 @@ Your prompt should now be your laptop prompt. Move into the local repository and
 ```bash
 cd path/to/ibs5004z-hpc-practical
 mkdir -p retrieved-results
-scp <username>@<ilifu-login-host>:~/ibs5004z-hpc-practical/results/read_count_<job-id>.txt retrieved-results/
+scp -i ~/.ssh/ilifu_key <username>@slurm.ilifu.ac.za:~/ibs5004z-hpc-practical/results/read_count_<job-id>.txt retrieved-results/
 ```
 
 Check the retrieved file:
@@ -295,7 +363,10 @@ You have now kept code and data separate, moved data from your laptop to HPC, un
 ## Troubleshooting
 
 - **`No such file or directory`**: check your current directory with `pwd`, then list its contents with `ls`.
-- **`Permission denied` during SSH/SCP**: check the username, hostname, and authentication instructions supplied for the course.
+- **`Identity file ... not accessible`**: check the key filename and location with `ls -l ~/.ssh`.
+- **`UNPROTECTED PRIVATE KEY FILE`**: run `chmod 600 ~/.ssh/ilifu_key`, then try again.
+- **`Permission denied` during SSH/SCP**: check your username, private key, and two-factor authentication response. Never try another student's private key.
+- **Two-factor authentication fails**: check that your device has the correct time and that you are using the authentication method registered for your Ilifu account. Ask the lecturer or Ilifu support if it continues to fail.
 - **The job remains pending**: run `squeue -u "$USER"`; a `PD` state means it is waiting for resources.
 - **The job fails**: inspect `slurm-<job-id>.out` first. Error messages are written there.
 - **Your FASTQ is not gzip-compressed**: use a filename ending in `.fastq`; the supplied counting scripts support both compressed and uncompressed FASTQ files. For manual inspection, use `head -n 8 data/example.fastq` instead of `gzip -cd ...`.
