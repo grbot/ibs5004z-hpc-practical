@@ -180,16 +180,16 @@ cd ..
 ls ibs5004z-hpc-practical
 ```
 
-Copy the complete directory, including the downloaded FASTQ, to your Ilifu home directory using either `scp`:
+Copy the complete directory, including the downloaded FASTQ, to your Ilifu home directory through Ilifu's dedicated transfer node using either `scp`:
 
 ```bash
-scp -i ~/.ssh/ilifu_key -r ibs5004z-hpc-practical <username>@slurm.ilifu.ac.za:~/
+scp -i ~/.ssh/ilifu_key -r ibs5004z-hpc-practical <username>@transfer.ilifu.ac.za:~/
 ```
 
 or, if `rsync` is installed, use:
 
 ```bash
-rsync -av -e "ssh -i ~/.ssh/ilifu_key" ibs5004z-hpc-practical/ <username>@slurm.ilifu.ac.za:~/ibs5004z-hpc-practical/
+rsync -av -e "ssh -i ~/.ssh/ilifu_key" ibs5004z-hpc-practical/ <username>@transfer.ilifu.ac.za:~/ibs5004z-hpc-practical/
 ```
 
 Connect to Ilifu:
@@ -349,7 +349,7 @@ Your prompt should now be your laptop prompt. Move into the local repository and
 ```bash
 cd path/to/ibs5004z-hpc-practical
 mkdir -p retrieved-results
-scp -i ~/.ssh/ilifu_key <username>@slurm.ilifu.ac.za:~/ibs5004z-hpc-practical/results/read_count_<job-id>.txt retrieved-results/
+scp -i ~/.ssh/ilifu_key <username>@transfer.ilifu.ac.za:~/ibs5004z-hpc-practical/results/read_count_<job-id>.txt retrieved-results/
 ```
 
 Check the retrieved file:
